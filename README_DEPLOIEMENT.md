@@ -24,14 +24,15 @@ Ouvre:
 
 Si la Function existe, tu dois voir une reponse du serveur, meme si la methode GET est refusee.
 
+## Connexion membre
+
+Les membres se connectent avec leur email et un code personnel BuildCord.
+Lors de la premiere connexion, le compte est cree automatiquement.
+Le code n'est pas stocke en clair: il est hache cote serveur.
+
 ## Codes par email avec Resend
 
-Pour que les membres recoivent un code par email, ajoute cette variable dans Netlify:
+Cette version n'a pas besoin de Resend pour la connexion membre.
+Tu peux garder `RESEND_API_KEY` dans Netlify si elle existe deja, mais elle n'est plus utilisee par le parcours principal.
 
-- `RESEND_API_KEY`: ta cle API Resend
-
-Optionnel:
-
-- `RESEND_FROM_EMAIL`: expediteur, par exemple `BuildCord <onboarding@resend.dev>` ou une adresse de ton domaine verifie.
-
-Sans domaine verifie sur Resend, l'adresse `onboarding@resend.dev` sert surtout aux tests. Pour envoyer a tout le monde proprement, ajoute plus tard un domaine BuildCord dans Resend.
+Plus tard, tu peux reactiver l'envoi de codes par email si tu veux une validation plus stricte.

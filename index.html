@@ -23,6 +23,23 @@
         </div>
 
         <section class="order-panel" aria-labelledby="order-title">
+          <form id="memberLoginForm" class="login-form member-login-form">
+            <div>
+              <p class="eyebrow">Connexion membre</p>
+              <h2>Connecte-toi pour commander</h2>
+            </div>
+            <label>
+              Email
+              <input id="restoreEmail" type="email" autocomplete="email" maxlength="80" placeholder="ex: contact@email.com" required />
+            </label>
+            <label>
+              Code personnel BuildCord
+              <input id="restoreCode" type="password" autocomplete="current-password" maxlength="64" placeholder="ex: Moidu31290" required />
+            </label>
+            <p id="memberLoginError" class="form-error" role="alert"></p>
+            <button class="primary-action" type="submit">Se connecter / creer mon compte</button>
+          </form>
+
           <div>
             <p class="eyebrow">Commande</p>
             <h2 id="order-title">Ouvrir une demande</h2>
@@ -51,24 +68,6 @@
               <textarea id="orderDetails" rows="5" placeholder="Explique ce que tu veux créer, ton thème, tes rôles, tes salons..." required></textarea>
             </label>
             <button class="primary-action" type="submit">Ouvrir un ticket</button>
-          </form>
-
-          <form id="memberLoginForm" class="login-form member-login-form">
-            <div>
-              <p class="eyebrow">Retrouver mes tickets</p>
-              <h2>Connexion membre</h2>
-            </div>
-            <label>
-              Email utilise pour la commande
-              <input id="restoreEmail" type="email" autocomplete="email" maxlength="80" placeholder="ex: contact@email.com" required />
-            </label>
-            <button id="requestCodeButton" class="ghost-action" type="button">Recevoir un code</button>
-            <label>
-              Code recu par email
-              <input id="restoreCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" required />
-            </label>
-            <p id="memberLoginError" class="form-error" role="alert"></p>
-            <button class="primary-action" type="submit">Se connecter</button>
           </form>
         </section>
       </aside>

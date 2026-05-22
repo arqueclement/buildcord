@@ -27,7 +27,6 @@ const nodes = {
   memberLoginForm: document.querySelector("#memberLoginForm"),
   restoreEmail: document.querySelector("#restoreEmail"),
   restoreCode: document.querySelector("#restoreCode"),
-  requestCodeButton: document.querySelector("#requestCodeButton"),
   memberLoginError: document.querySelector("#memberLoginError"),
   loginForm: document.querySelector("#loginForm"),
   adminId: document.querySelector("#adminId"),
@@ -113,6 +112,10 @@ async function refreshTickets(options = {}) {
 }
 
 async function createTicket({ member, email, service, details }) {
+  if (!state.memberSession) {
+    throw new Error("Connecte-toi avec ton email avant d'ouvrir un ticket.");
+  }
+
   state.memberEmail = normalizeEmail(email);
   localStorage.setItem(MEMBER_EMAIL_KEY, state.memberEmail);
 
@@ -206,6 +209,11 @@ function ticketName(ticket) {
 }
 
 function renderTicketList() {
+  if (!state.memberSession) {
+    nodes.ticketList.innerHTML = `<div class="empty-state">Connecte-toi avec ton email pour voir tes tickets.</div>`;
+    return;
+  }
+
   if (state.isLoading && !state.hasLoaded) {
     nodes.ticketList.innerHTML = `<div class="empty-state">Chargement des tickets...</div>`;
     return;
@@ -239,6 +247,16 @@ function renderTicketList() {
 }
 
 function renderChat() {
+  if (!state.memberSession) {
+    nodes.ticketMeta.textContent = "Connexion requise";
+    nodes.ticketTitle.textContent = "# espace-membre";
+    nodes.messageInput.disabled = true;
+    nodes.sendButton.disabled = true;
+    nodes.closeTicketButton.classList.add("hidden");
+    nodes.messages.innerHTML = `<div class="empty-state">Connecte-toi avec ton email et ton code pour ouvrir ou suivre une commande.</div>`;
+    return;
+  }
+
   const ticket = getSelectedTicket();
   const canWrite = Boolean(ticket && ticket.status === "open");
 
@@ -281,6 +299,11 @@ function renderSession() {
   nodes.sessionBadge.textContent = state.isAdmin ? "Mode admin" : state.memberEmail ? state.memberEmail : "Mode membre";
   nodes.logoutButton.classList.toggle("hidden", !state.isAdmin && !state.memberEmail);
   nodes.clearClosedButton.classList.toggle("hidden", !state.isAdmin || !state.tickets.some((ticket) => ticket.status === "closed"));
+  const isMemberLoggedIn = Boolean(state.memberSession);
+  nodes.orderForm.classList.toggle("hidden", !isMemberLoggedIn);
+  nodes.memberLoginForm.classList.toggle("hidden", isMemberLoggedIn);
+  nodes.memberEmail.value = state.memberEmail;
+  nodes.memberEmail.readOnly = true;
 }
 
 function render() {
@@ -313,25 +336,6 @@ nodes.orderForm.addEventListener("submit", async (event) => {
   }
 });
 
-nodes.requestCodeButton.addEventListener("click", async () => {
-  nodes.memberLoginError.textContent = "";
-  const email = normalizeEmail(nodes.restoreEmail.value);
-  if (!email) {
-    nodes.memberLoginError.textContent = "Entre ton email avant de demander un code.";
-    return;
-  }
-
-  nodes.requestCodeButton.disabled = true;
-  try {
-    await api("requestMemberCode", { email });
-    nodes.memberLoginError.textContent = "Code envoye. Regarde tes emails.";
-  } catch (error) {
-    nodes.memberLoginError.textContent = error.message;
-  } finally {
-    nodes.requestCodeButton.disabled = false;
-  }
-});
-
 nodes.memberLoginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   nodes.memberLoginError.textContent = "";
@@ -339,14 +343,14 @@ nodes.memberLoginForm.addEventListener("submit", async (event) => {
   const code = nodes.restoreCode.value.trim();
 
   try {
-    const data = await api("verifyMemberCode", { email, code });
+    const data = await api("memberLogin", { email, code });
     state.memberEmail = data.memberEmail;
     state.memberSession = data.memberSession;
     localStorage.setItem(MEMBER_EMAIL_KEY, state.memberEmail);
     localStorage.setItem(MEMBER_SESSION_KEY, state.memberSession);
     await refreshTickets();
     if (state.tickets.length === 0) {
-      nodes.memberLoginError.textContent = "Connexion reussie, mais aucun ticket trouve avec cet email.";
+      nodes.memberLoginError.textContent = "Connexion reussie. Tu peux maintenant ouvrir une commande.";
     }
   } catch (error) {
     nodes.memberLoginError.textContent = error.message;

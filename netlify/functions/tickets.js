@@ -3,6 +3,7 @@ import { getStore } from "@netlify/blobs";
 
 const TICKETS_KEY = "tickets";
 const MEMBER_CODES_KEY = "member-codes";
+const MEMBER_ACCOUNTS_KEY = "member-accounts";
 const ADMIN_ID_HASH = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
 const ADMIN_PASSWORD_HASH = "ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae";
 const TOKEN_SECRET = process.env.BUILDCORD_TOKEN_SECRET || ADMIN_PASSWORD_HASH;
@@ -18,6 +19,7 @@ export default async (request) => {
     const action = body.action;
 
     if (action === "login") return login(body);
+    if (action === "memberLogin") return memberLogin(body);
     if (action === "requestMemberCode") return requestMemberCode(body);
     if (action === "verifyMemberCode") return verifyMemberCode(body);
     if (action === "list") return listTickets(body);
@@ -43,15 +45,34 @@ async function login(body) {
   return json(200, { adminToken: signToken({ role: "admin", exp: Date.now() + 12 * 60 * 60 * 1000 }) });
 }
 
+async function memberLogin(body) {
+  const email = normalizeEmail(body.email || body.memberEmail);
+  const code = cleanText(body.code, 64);
+  if (!email || !code) return json(400, { error: "Email et code obligatoires." });
+  if (code.length < 6) return json(400, { error: "Le code doit faire au moins 6 caracteres." });
+
+  const accounts = await readMemberAccounts();
+  const codeHash = hashMemberCode(email, code);
+
+  if (!accounts[email]) {
+    accounts[email] = {
+      codeHash,
+      createdAt: new Date().toISOString(),
+    };
+    await writeMemberAccounts(accounts);
+  } else if (!safeEqual(accounts[email].codeHash, codeHash)) {
+    return json(401, { error: "Email ou code incorrect." });
+  }
+
+  return json(200, {
+    memberEmail: email,
+    memberSession: signToken({ role: "member", email, exp: Date.now() + 30 * 24 * 60 * 60 * 1000 }),
+  });
+}
+
 async function requestMemberCode(body) {
   const email = normalizeEmail(body.email || body.memberEmail);
   if (!email) return json(400, { error: "Email obligatoire." });
-
-  const tickets = await readTickets();
-  const hasTicket = tickets.some((ticket) => normalizeEmail(ticket.memberEmail) === email);
-  if (!hasTicket) {
-    return json(404, { error: "Aucun ticket trouve avec cet email." });
-  }
 
   const code = String(crypto.randomInt(100000, 1000000));
   const codes = await readMemberCodes();
@@ -125,8 +146,13 @@ async function listTickets(body) {
 }
 
 async function createTicket(body) {
+  const memberSession = readMemberSession(body.memberSession);
+  if (!memberSession) {
+    return json(403, { error: "Connexion membre requise." });
+  }
+
   const member = cleanText(body.member, 32);
-  const memberEmail = normalizeEmail(body.email || body.memberEmail);
+  const memberEmail = memberSession.email;
   const service = cleanText(body.service, 80);
   const details = cleanText(body.details, 1200);
 
@@ -247,6 +273,17 @@ async function writeMemberCodes(codes) {
   await store.setJSON(MEMBER_CODES_KEY, codes);
 }
 
+async function readMemberAccounts() {
+  const store = getStore("buildcord");
+  const accounts = await store.get(MEMBER_ACCOUNTS_KEY, { type: "json" });
+  return accounts && typeof accounts === "object" && !Array.isArray(accounts) ? accounts : {};
+}
+
+async function writeMemberAccounts(accounts) {
+  const store = getStore("buildcord");
+  await store.setJSON(MEMBER_ACCOUNTS_KEY, accounts);
+}
+
 async function sendLoginEmail(email, code) {
   if (!process.env.RESEND_API_KEY) {
     throw new Error("RESEND_API_KEY n'est pas configure dans Netlify.");
@@ -337,6 +374,10 @@ function readSignedToken(token) {
 
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function hashMemberCode(email, code) {
+  return sha256(`${normalizeEmail(email)}:${code}:${TOKEN_SECRET}`);
 }
 
 function safeEqual(a, b) {
