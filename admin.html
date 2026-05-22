@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BuildCord - Admin tickets</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="admin-shell">
+      <header class="admin-topbar">
+        <div>
+          <p class="eyebrow">Admin BuildCord</p>
+          <h1 class="admin-title">Commandes de tickets</h1>
+        </div>
+        <div class="session-actions">
+          <a class="ghost-link" href="index.html">Voir le site</a>
+          <button id="logoutButton" class="ghost-action" type="button">Deconnexion</button>
+        </div>
+      </header>
+
+      <section class="admin-stats" aria-label="Statistiques des tickets">
+        <article>
+          <span id="totalTickets">0</span>
+          <p>Total tickets</p>
+        </article>
+        <article>
+          <span id="openTickets">0</span>
+          <p>Tickets ouverts</p>
+        </article>
+        <article>
+          <span id="closedTickets">0</span>
+          <p>Tickets fermes</p>
+        </article>
+      </section>
+
+      <section class="admin-console" aria-label="Panel administrateur des tickets">
+        <aside class="admin-orders">
+          <div class="sidebar-head">
+            <div>
+              <p class="eyebrow">Toutes les commandes</p>
+              <h2>Tickets</h2>
+            </div>
+            <button id="clearClosedButton" class="icon-action hidden" type="button" title="Supprimer les tickets fermes">x</button>
+          </div>
+          <div id="ticketList" class="ticket-list"></div>
+        </aside>
+
+        <article class="chat-panel admin-chat">
+          <header class="chat-head">
+            <div>
+              <p id="ticketMeta" class="eyebrow">Aucun ticket selectionne</p>
+              <h2 id="ticketTitle"># ticket</h2>
+            </div>
+            <button id="closeTicketButton" class="danger-action hidden" type="button">Fermer le ticket</button>
+          </header>
+
+          <div id="messages" class="messages" aria-live="polite"></div>
+
+          <form id="messageForm" class="message-form">
+            <input id="messageInput" placeholder="Repondre au membre..." autocomplete="off" disabled />
+            <button class="send-action" type="submit" disabled>Envoyer</button>
+          </form>
+        </article>
+      </section>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BuildCord - Commandes & tickets</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="brand-panel">
+        <div class="brand-mark" aria-hidden="true">
+          <span class="brand-bubble"></span>
+          <span class="brand-dot brand-dot-left"></span>
+          <span class="brand-dot brand-dot-right"></span>
+        </div>
+        <div>
+          <p class="eyebrow">Serveurs Discord sur mesure</p>
+          <h1>Build<span>Cord</span></h1>
+          <p class="lead">
+            Crée ton serveur, organise ta communauté et demande de l'aide sans stress. Tous les services sont gratuits pour le moment.
+          </p>
+        </div>
+
+        <section class="order-panel" aria-labelledby="order-title">
+          <div>
+            <p class="eyebrow">Commande</p>
+            <h2 id="order-title">Ouvrir une demande</h2>
+          </div>
+          <form id="orderForm" class="form-grid">
+            <label>
+              Pseudo Discord
+              <input id="memberName" autocomplete="nickname" maxlength="32" placeholder="ex: Lyna#0001" required />
+            </label>
+            <label>
+              Type de service
+              <select id="serviceType" required>
+                <option value="Création complète de serveur">Création complète de serveur</option>
+                <option value="Configuration salons et rôles">Configuration salons et rôles</option>
+                <option value="Bots et automatisations">Bots et automatisations</option>
+                <option value="Refonte ou optimisation">Refonte ou optimisation</option>
+                <option value="Autre demande BuildCord">Autre demande</option>
+              </select>
+            </label>
+            <label class="full">
+              Description
+              <textarea id="orderDetails" rows="5" placeholder="Explique ce que tu veux créer, ton thème, tes rôles, tes salons..." required></textarea>
+            </label>
+            <button class="primary-action" type="submit">Ouvrir un ticket</button>
+          </form>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Espace tickets</p>
+            <h2>Salons privés BuildCord</h2>
+          </div>
+          <div class="session-actions">
+            <span id="sessionBadge" class="session-badge">Mode membre</span>
+            <button id="logoutButton" class="ghost-action hidden" type="button">Déconnexion</button>
+          </div>
+        </header>
+
+        <section class="dashboard-grid">
+          <div class="feature-list" aria-label="Fonctionnalités principales">
+            <article>
+              <span class="feature-icon">#</span>
+              <div>
+                <h3>Tickets en salon</h3>
+                <p>Chaque commande devient un salon privé avec son historique.</p>
+              </div>
+            </article>
+            <article>
+              <span class="feature-icon">✓</span>
+              <div>
+                <h3>Ouverture et fermeture</h3>
+                <p>Les admins peuvent suivre, répondre et fermer les demandes.</p>
+              </div>
+            </article>
+            <article>
+              <span class="feature-icon">0€</span>
+              <div>
+                <h3>Gratuit maintenant</h3>
+                <p>BuildCord accompagne les nouveaux créateurs gratuitement.</p>
+              </div>
+            </article>
+          </div>
+
+          <section class="login-panel" aria-labelledby="login-title">
+            <div>
+              <p class="eyebrow">Administration</p>
+              <h2 id="login-title">Admin panel</h2>
+            </div>
+            <form id="loginForm" class="login-form">
+              <label>
+                Identifiant
+                <input id="adminId" autocomplete="username" required />
+              </label>
+              <label>
+                Mot de passe
+                <input id="adminPassword" type="password" autocomplete="current-password" required />
+              </label>
+              <p id="loginError" class="form-error" role="alert"></p>
+              <button class="primary-action" type="submit">Se connecter</button>
+            </form>
+          </section>
+        </section>
+
+        <section class="ticket-console" aria-label="Console de tickets">
+          <nav class="ticket-sidebar" aria-label="Liste des tickets">
+            <div class="sidebar-head">
+              <div>
+                <p class="eyebrow">Salons</p>
+                <h2>Tickets actifs</h2>
+              </div>
+              <button id="clearClosedButton" class="icon-action hidden" type="button" title="Masquer les tickets fermés">×</button>
+            </div>
+            <div id="ticketList" class="ticket-list"></div>
+          </nav>
+
+          <article class="chat-panel">
+            <header class="chat-head">
+              <div>
+                <p id="ticketMeta" class="eyebrow">Aucun ticket sélectionné</p>
+                <h2 id="ticketTitle"># ouvrir-un-ticket</h2>
+              </div>
+              <button id="closeTicketButton" class="danger-action hidden" type="button">Fermer</button>
+            </header>
+
+            <div id="messages" class="messages" aria-live="polite"></div>
+
+            <form id="messageForm" class="message-form">
+              <input id="messageInput" placeholder="Envoyer un message dans ce salon..." autocomplete="off" disabled />
+              <button class="send-action" type="submit" disabled>Envoyer</button>
+            </form>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
