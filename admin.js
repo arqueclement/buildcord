@@ -1,11 +1,13 @@
 const SESSION_KEY = "buildcord:admin-session:v2";
 const API_URL = "/.netlify/functions/tickets";
+const REFRESH_INTERVAL_MS = 3500;
 
 const state = {
   tickets: [],
   selectedId: null,
   adminToken: sessionStorage.getItem(SESSION_KEY) || "",
   isLoading: false,
+  hasLoaded: false,
   error: "",
 };
 
@@ -50,9 +52,12 @@ async function api(action, payload = {}) {
   return data;
 }
 
-async function refreshTickets() {
-  state.isLoading = true;
-  render();
+async function refreshTickets(options = {}) {
+  const silent = Boolean(options.silent);
+  if (!silent) {
+    state.isLoading = true;
+    render();
+  }
 
   try {
     const data = await api("list");
@@ -67,6 +72,7 @@ async function refreshTickets() {
       sessionStorage.removeItem(SESSION_KEY);
     }
   } finally {
+    state.hasLoaded = true;
     state.isLoading = false;
     render();
   }
@@ -129,7 +135,7 @@ function renderStats() {
 }
 
 function renderTicketList() {
-  if (state.isLoading) {
+  if (state.isLoading && !state.hasLoaded) {
     nodes.ticketList.innerHTML = `<div class="empty-state">Chargement des commandes...</div>`;
     return;
   }
@@ -155,6 +161,7 @@ function renderTicketList() {
             <em class="status-pill ${ticket.status === "closed" ? "closed" : ""}">${statusText}</em>
           </span>
           <span>${escapeHtml(ticket.member)}</span>
+          <span>${escapeHtml(ticket.memberEmail || "Email non renseigne")}</span>
           <span>${escapeHtml(ticket.service)}</span>
           <span>${formatDate(ticket.createdAt)}</span>
         </button>
@@ -179,7 +186,7 @@ function renderChat() {
     return;
   }
 
-  nodes.ticketMeta.textContent = `${ticket.member} - ${ticket.service} - ${formatDate(ticket.createdAt)}`;
+  nodes.ticketMeta.textContent = `${ticket.member} - ${ticket.memberEmail || "Email non renseigne"} - ${ticket.service} - ${formatDate(ticket.createdAt)}`;
   nodes.ticketTitle.textContent = `# ${ticketName(ticket)}`;
   nodes.messages.innerHTML = ticket.messages
     .map((message) => {
@@ -230,3 +237,8 @@ nodes.ticketList.addEventListener("click", (event) => {
 });
 
 refreshTickets();
+setInterval(() => {
+  if (!document.hidden) {
+    refreshTickets({ silent: true });
+  }
+}, REFRESH_INTERVAL_MS);

@@ -33,6 +33,10 @@
               <input id="memberName" autocomplete="nickname" maxlength="32" placeholder="ex: Lyna#0001" required />
             </label>
             <label>
+              Email
+              <input id="memberEmail" type="email" autocomplete="email" maxlength="80" placeholder="ex: contact@email.com" required />
+            </label>
+            <label>
               Type de service
               <select id="serviceType" required>
                 <option value="Création complète de serveur">Création complète de serveur</option>
@@ -47,6 +51,19 @@
               <textarea id="orderDetails" rows="5" placeholder="Explique ce que tu veux créer, ton thème, tes rôles, tes salons..." required></textarea>
             </label>
             <button class="primary-action" type="submit">Ouvrir un ticket</button>
+          </form>
+
+          <form id="memberLoginForm" class="login-form member-login-form">
+            <div>
+              <p class="eyebrow">Retrouver mes tickets</p>
+              <h2>Connexion membre</h2>
+            </div>
+            <label>
+              Email utilise pour la commande
+              <input id="restoreEmail" type="email" autocomplete="email" maxlength="80" placeholder="ex: contact@email.com" required />
+            </label>
+            <p id="memberLoginError" class="form-error" role="alert"></p>
+            <button class="ghost-action" type="submit">Voir mes tickets</button>
           </form>
         </section>
       </aside>

@@ -1,22 +1,30 @@
 const SESSION_KEY = "buildcord:admin-session:v2";
 const MEMBER_KEYS = "buildcord:member-tickets:v2";
+const MEMBER_EMAIL_KEY = "buildcord:member-email:v1";
 const API_URL = "/.netlify/functions/tickets";
+const REFRESH_INTERVAL_MS = 3500;
 
 const state = {
   tickets: [],
   selectedId: null,
   isAdmin: Boolean(sessionStorage.getItem(SESSION_KEY)),
   adminToken: sessionStorage.getItem(SESSION_KEY) || "",
+  memberEmail: localStorage.getItem(MEMBER_EMAIL_KEY) || "",
   memberAccess: loadMemberAccess(),
   isLoading: false,
+  hasLoaded: false,
   error: "",
 };
 
 const nodes = {
   orderForm: document.querySelector("#orderForm"),
   memberName: document.querySelector("#memberName"),
+  memberEmail: document.querySelector("#memberEmail"),
   serviceType: document.querySelector("#serviceType"),
   orderDetails: document.querySelector("#orderDetails"),
+  memberLoginForm: document.querySelector("#memberLoginForm"),
+  restoreEmail: document.querySelector("#restoreEmail"),
+  memberLoginError: document.querySelector("#memberLoginError"),
   loginForm: document.querySelector("#loginForm"),
   adminId: document.querySelector("#adminId"),
   adminPassword: document.querySelector("#adminPassword"),
@@ -60,6 +68,7 @@ async function api(action, payload = {}) {
     body: JSON.stringify({
       action,
       adminToken: state.adminToken,
+      memberEmail: state.memberEmail,
       memberAccess: state.memberAccess,
       ...payload,
     }),
@@ -75,9 +84,12 @@ async function api(action, payload = {}) {
   return data;
 }
 
-async function refreshTickets() {
-  state.isLoading = true;
-  render();
+async function refreshTickets(options = {}) {
+  const silent = Boolean(options.silent);
+  if (!silent) {
+    state.isLoading = true;
+    render();
+  }
 
   try {
     const data = await api("list");
@@ -89,13 +101,17 @@ async function refreshTickets() {
   } catch (error) {
     state.error = error.message;
   } finally {
+    state.hasLoaded = true;
     state.isLoading = false;
     render();
   }
 }
 
-async function createTicket({ member, service, details }) {
-  const data = await api("create", { member, service, details });
+async function createTicket({ member, email, service, details }) {
+  state.memberEmail = normalizeEmail(email);
+  localStorage.setItem(MEMBER_EMAIL_KEY, state.memberEmail);
+
+  const data = await api("create", { member, email: state.memberEmail, service, details });
   rememberTicketAccess(data.ticket.id, data.memberToken);
   state.selectedId = data.ticket.id;
   await refreshTickets();
@@ -124,7 +140,11 @@ async function login(event) {
 function logout() {
   state.isAdmin = false;
   state.adminToken = "";
+  state.memberEmail = "";
+  state.memberAccess = [];
   sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(MEMBER_EMAIL_KEY);
+  localStorage.removeItem(MEMBER_KEYS);
   refreshTickets();
 }
 
@@ -179,7 +199,7 @@ function ticketName(ticket) {
 }
 
 function renderTicketList() {
-  if (state.isLoading) {
+  if (state.isLoading && !state.hasLoaded) {
     nodes.ticketList.innerHTML = `<div class="empty-state">Chargement des tickets...</div>`;
     return;
   }
@@ -251,8 +271,8 @@ function renderChat() {
 }
 
 function renderSession() {
-  nodes.sessionBadge.textContent = state.isAdmin ? "Mode admin" : "Mode membre";
-  nodes.logoutButton.classList.toggle("hidden", !state.isAdmin);
+  nodes.sessionBadge.textContent = state.isAdmin ? "Mode admin" : state.memberEmail ? state.memberEmail : "Mode membre";
+  nodes.logoutButton.classList.toggle("hidden", !state.isAdmin && !state.memberEmail);
   nodes.clearClosedButton.classList.toggle("hidden", !state.isAdmin || !state.tickets.some((ticket) => ticket.status === "closed"));
 }
 
@@ -276,12 +296,24 @@ nodes.orderForm.addEventListener("submit", async (event) => {
   try {
     await createTicket({
       member: nodes.memberName.value.trim(),
+      email: nodes.memberEmail.value.trim(),
       service: nodes.serviceType.value,
       details: nodes.orderDetails.value.trim(),
     });
     nodes.orderForm.reset();
   } catch (error) {
     alert(error.message);
+  }
+});
+
+nodes.memberLoginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  nodes.memberLoginError.textContent = "";
+  state.memberEmail = normalizeEmail(nodes.restoreEmail.value);
+  localStorage.setItem(MEMBER_EMAIL_KEY, state.memberEmail);
+  await refreshTickets();
+  if (state.tickets.length === 0) {
+    nodes.memberLoginError.textContent = "Aucun ticket trouve avec cet email.";
   }
 });
 
@@ -297,4 +329,13 @@ nodes.ticketList.addEventListener("click", (event) => {
   render();
 });
 
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
 refreshTickets();
+setInterval(() => {
+  if (!document.hidden) {
+    refreshTickets({ silent: true });
+  }
+}, REFRESH_INTERVAL_MS);
