@@ -23,3 +23,15 @@ Ouvre:
 `https://buildcord.netlify.app/.netlify/functions/tickets`
 
 Si la Function existe, tu dois voir une reponse du serveur, meme si la methode GET est refusee.
+
+## Codes par email avec Resend
+
+Pour que les membres recoivent un code par email, ajoute cette variable dans Netlify:
+
+- `RESEND_API_KEY`: ta cle API Resend
+
+Optionnel:
+
+- `RESEND_FROM_EMAIL`: expediteur, par exemple `BuildCord <onboarding@resend.dev>` ou une adresse de ton domaine verifie.
+
+Sans domaine verifie sur Resend, l'adresse `onboarding@resend.dev` sert surtout aux tests. Pour envoyer a tout le monde proprement, ajoute plus tard un domaine BuildCord dans Resend.

@@ -62,8 +62,13 @@
               Email utilise pour la commande
               <input id="restoreEmail" type="email" autocomplete="email" maxlength="80" placeholder="ex: contact@email.com" required />
             </label>
+            <button id="requestCodeButton" class="ghost-action" type="button">Recevoir un code</button>
+            <label>
+              Code recu par email
+              <input id="restoreCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" required />
+            </label>
             <p id="memberLoginError" class="form-error" role="alert"></p>
-            <button class="ghost-action" type="submit">Voir mes tickets</button>
+            <button class="primary-action" type="submit">Se connecter</button>
           </form>
         </section>
       </aside>

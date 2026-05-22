@@ -1,6 +1,7 @@
 const SESSION_KEY = "buildcord:admin-session:v2";
 const MEMBER_KEYS = "buildcord:member-tickets:v2";
 const MEMBER_EMAIL_KEY = "buildcord:member-email:v1";
+const MEMBER_SESSION_KEY = "buildcord:member-session:v1";
 const API_URL = "/.netlify/functions/tickets";
 const REFRESH_INTERVAL_MS = 3500;
 
@@ -10,6 +11,7 @@ const state = {
   isAdmin: Boolean(sessionStorage.getItem(SESSION_KEY)),
   adminToken: sessionStorage.getItem(SESSION_KEY) || "",
   memberEmail: localStorage.getItem(MEMBER_EMAIL_KEY) || "",
+  memberSession: localStorage.getItem(MEMBER_SESSION_KEY) || "",
   memberAccess: loadMemberAccess(),
   isLoading: false,
   hasLoaded: false,
@@ -24,6 +26,8 @@ const nodes = {
   orderDetails: document.querySelector("#orderDetails"),
   memberLoginForm: document.querySelector("#memberLoginForm"),
   restoreEmail: document.querySelector("#restoreEmail"),
+  restoreCode: document.querySelector("#restoreCode"),
+  requestCodeButton: document.querySelector("#requestCodeButton"),
   memberLoginError: document.querySelector("#memberLoginError"),
   loginForm: document.querySelector("#loginForm"),
   adminId: document.querySelector("#adminId"),
@@ -69,6 +73,7 @@ async function api(action, payload = {}) {
       action,
       adminToken: state.adminToken,
       memberEmail: state.memberEmail,
+      memberSession: state.memberSession,
       memberAccess: state.memberAccess,
       ...payload,
     }),
@@ -141,9 +146,11 @@ function logout() {
   state.isAdmin = false;
   state.adminToken = "";
   state.memberEmail = "";
+  state.memberSession = "";
   state.memberAccess = [];
   sessionStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(MEMBER_EMAIL_KEY);
+  localStorage.removeItem(MEMBER_SESSION_KEY);
   localStorage.removeItem(MEMBER_KEYS);
   refreshTickets();
 }
@@ -306,14 +313,43 @@ nodes.orderForm.addEventListener("submit", async (event) => {
   }
 });
 
+nodes.requestCodeButton.addEventListener("click", async () => {
+  nodes.memberLoginError.textContent = "";
+  const email = normalizeEmail(nodes.restoreEmail.value);
+  if (!email) {
+    nodes.memberLoginError.textContent = "Entre ton email avant de demander un code.";
+    return;
+  }
+
+  nodes.requestCodeButton.disabled = true;
+  try {
+    await api("requestMemberCode", { email });
+    nodes.memberLoginError.textContent = "Code envoye. Regarde tes emails.";
+  } catch (error) {
+    nodes.memberLoginError.textContent = error.message;
+  } finally {
+    nodes.requestCodeButton.disabled = false;
+  }
+});
+
 nodes.memberLoginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   nodes.memberLoginError.textContent = "";
-  state.memberEmail = normalizeEmail(nodes.restoreEmail.value);
-  localStorage.setItem(MEMBER_EMAIL_KEY, state.memberEmail);
-  await refreshTickets();
-  if (state.tickets.length === 0) {
-    nodes.memberLoginError.textContent = "Aucun ticket trouve avec cet email.";
+  const email = normalizeEmail(nodes.restoreEmail.value);
+  const code = nodes.restoreCode.value.trim();
+
+  try {
+    const data = await api("verifyMemberCode", { email, code });
+    state.memberEmail = data.memberEmail;
+    state.memberSession = data.memberSession;
+    localStorage.setItem(MEMBER_EMAIL_KEY, state.memberEmail);
+    localStorage.setItem(MEMBER_SESSION_KEY, state.memberSession);
+    await refreshTickets();
+    if (state.tickets.length === 0) {
+      nodes.memberLoginError.textContent = "Connexion reussie, mais aucun ticket trouve avec cet email.";
+    }
+  } catch (error) {
+    nodes.memberLoginError.textContent = error.message;
   }
 });
 

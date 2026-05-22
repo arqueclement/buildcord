@@ -2,9 +2,11 @@ import crypto from "node:crypto";
 import { getStore } from "@netlify/blobs";
 
 const TICKETS_KEY = "tickets";
+const MEMBER_CODES_KEY = "member-codes";
 const ADMIN_ID_HASH = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
 const ADMIN_PASSWORD_HASH = "ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae";
 const TOKEN_SECRET = process.env.BUILDCORD_TOKEN_SECRET || ADMIN_PASSWORD_HASH;
+const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "BuildCord <onboarding@resend.dev>";
 
 export default async (request) => {
   if (request.method !== "POST") {
@@ -16,6 +18,8 @@ export default async (request) => {
     const action = body.action;
 
     if (action === "login") return login(body);
+    if (action === "requestMemberCode") return requestMemberCode(body);
+    if (action === "verifyMemberCode") return verifyMemberCode(body);
     if (action === "list") return listTickets(body);
     if (action === "create") return createTicket(body);
     if (action === "sendMessage") return sendMessage(body);
@@ -39,6 +43,64 @@ async function login(body) {
   return json(200, { adminToken: signToken({ role: "admin", exp: Date.now() + 12 * 60 * 60 * 1000 }) });
 }
 
+async function requestMemberCode(body) {
+  const email = normalizeEmail(body.email || body.memberEmail);
+  if (!email) return json(400, { error: "Email obligatoire." });
+
+  const tickets = await readTickets();
+  const hasTicket = tickets.some((ticket) => normalizeEmail(ticket.memberEmail) === email);
+  if (!hasTicket) {
+    return json(404, { error: "Aucun ticket trouve avec cet email." });
+  }
+
+  const code = String(crypto.randomInt(100000, 1000000));
+  const codes = await readMemberCodes();
+  codes[email] = {
+    codeHash: sha256(code),
+    expiresAt: Date.now() + 10 * 60 * 1000,
+    attempts: 0,
+  };
+  await writeMemberCodes(codes);
+  await sendLoginEmail(email, code);
+
+  return json(200, { ok: true });
+}
+
+async function verifyMemberCode(body) {
+  const email = normalizeEmail(body.email || body.memberEmail);
+  const code = cleanText(body.code, 6);
+  if (!email || !code) return json(400, { error: "Email et code obligatoires." });
+
+  const codes = await readMemberCodes();
+  const saved = codes[email];
+  if (!saved || Number(saved.expiresAt) < Date.now()) {
+    delete codes[email];
+    await writeMemberCodes(codes);
+    return json(401, { error: "Code expire. Demande un nouveau code." });
+  }
+
+  saved.attempts = Number(saved.attempts || 0) + 1;
+  if (saved.attempts > 5) {
+    delete codes[email];
+    await writeMemberCodes(codes);
+    return json(401, { error: "Trop d'essais. Demande un nouveau code." });
+  }
+
+  if (!safeEqual(saved.codeHash, sha256(code))) {
+    codes[email] = saved;
+    await writeMemberCodes(codes);
+    return json(401, { error: "Code incorrect." });
+  }
+
+  delete codes[email];
+  await writeMemberCodes(codes);
+
+  return json(200, {
+    memberEmail: email,
+    memberSession: signToken({ role: "member", email, exp: Date.now() + 30 * 24 * 60 * 60 * 1000 }),
+  });
+}
+
 async function listTickets(body) {
   const tickets = await readTickets();
   const isAdmin = isAdminToken(body.adminToken);
@@ -52,8 +114,11 @@ async function listTickets(body) {
   }
 
   const memberAccess = Array.isArray(body.memberAccess) ? body.memberAccess : [];
+  const memberSession = readMemberSession(body.memberSession);
+  const memberEmail = memberSession?.email || "";
   const visible = tickets.filter((ticket) =>
-    memberAccess.some((item) => item.id === ticket.id && item.token === ticket.memberToken)
+    memberAccess.some((item) => item.id === ticket.id && item.token === ticket.memberToken) ||
+    (memberEmail && normalizeEmail(ticket.memberEmail) === memberEmail)
   );
 
   return json(200, { tickets: visible.map(publicTicket) });
@@ -61,10 +126,11 @@ async function listTickets(body) {
 
 async function createTicket(body) {
   const member = cleanText(body.member, 32);
+  const memberEmail = normalizeEmail(body.email || body.memberEmail);
   const service = cleanText(body.service, 80);
   const details = cleanText(body.details, 1200);
 
-  if (!member || !service || !details) {
+  if (!member || !memberEmail || !service || !details) {
     return json(400, { error: "Merci de remplir toute la demande." });
   }
 
@@ -75,6 +141,7 @@ async function createTicket(body) {
     id: crypto.randomUUID(),
     number: String(nextNumber).padStart(4, "0"),
     member,
+    memberEmail,
     service,
     status: "open",
     memberToken: crypto.randomBytes(32).toString("hex"),
@@ -108,7 +175,11 @@ async function sendMessage(body) {
   if (ticket.status === "closed") return json(400, { error: "Ce ticket est ferme." });
 
   const isAdmin = isAdminToken(body.adminToken);
-  const isMember = body.memberToken && body.memberToken === ticket.memberToken;
+  const memberSession = readMemberSession(body.memberSession);
+  const memberEmail = memberSession?.email || "";
+  const isMember =
+    (body.memberToken && body.memberToken === ticket.memberToken) ||
+    (memberEmail && normalizeEmail(ticket.memberEmail) === memberEmail);
   if (!isAdmin && !isMember) return json(403, { error: "Acces refuse." });
 
   const text = cleanText(body.text, 1200);
@@ -165,11 +236,56 @@ async function writeTickets(tickets) {
   await store.setJSON(TICKETS_KEY, tickets);
 }
 
+async function readMemberCodes() {
+  const store = getStore("buildcord");
+  const codes = await store.get(MEMBER_CODES_KEY, { type: "json" });
+  return codes && typeof codes === "object" && !Array.isArray(codes) ? codes : {};
+}
+
+async function writeMemberCodes(codes) {
+  const store = getStore("buildcord");
+  await store.setJSON(MEMBER_CODES_KEY, codes);
+}
+
+async function sendLoginEmail(email, code) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY n'est pas configure dans Netlify.");
+  }
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: RESEND_FROM_EMAIL,
+      to: email,
+      subject: "Ton code BuildCord",
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.5;color:#111827">
+          <h1>Code de connexion BuildCord</h1>
+          <p>Voici ton code pour retrouver tes tickets:</p>
+          <p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p>
+          <p>Ce code expire dans 10 minutes.</p>
+        </div>
+      `,
+      text: `Ton code BuildCord est ${code}. Il expire dans 10 minutes.`,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error("Impossible d'envoyer l'email: " + error);
+  }
+}
+
 function publicTicket(ticket) {
   return {
     id: ticket.id,
     number: ticket.number,
     member: ticket.member,
+    memberEmail: ticket.memberEmail,
     service: ticket.service,
     status: ticket.status,
     createdAt: ticket.createdAt,
@@ -198,6 +314,27 @@ function isAdminToken(token) {
   }
 }
 
+function readMemberSession(token) {
+  const payload = readSignedToken(token);
+  if (!payload || payload.role !== "member" || !payload.email) return null;
+  return payload;
+}
+
+function readSignedToken(token) {
+  if (!token || typeof token !== "string" || !token.includes(".")) return null;
+  const [encoded, signature] = token.split(".");
+  const expected = crypto.createHmac("sha256", TOKEN_SECRET).update(encoded).digest("base64url");
+  if (!safeEqual(signature, expected)) return null;
+
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+    if (Number(payload.exp) <= Date.now()) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
@@ -210,6 +347,10 @@ function safeEqual(a, b) {
 
 function cleanText(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase().slice(0, 80);
 }
 
 function json(status, data) {
