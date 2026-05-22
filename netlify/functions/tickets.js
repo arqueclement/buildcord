@@ -1,18 +1,18 @@
-const crypto = require("crypto");
-const { getStore } = require("@netlify/blobs");
+import crypto from "node:crypto";
+import { getStore } from "@netlify/blobs";
 
 const TICKETS_KEY = "tickets";
 const ADMIN_ID_HASH = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
 const ADMIN_PASSWORD_HASH = "ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae";
 const TOKEN_SECRET = process.env.BUILDCORD_TOKEN_SECRET || ADMIN_PASSWORD_HASH;
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== "POST") {
+export default async (request) => {
+  if (request.method !== "POST") {
     return json(405, { error: "Methode non autorisee." });
   }
 
   try {
-    const body = JSON.parse(event.body || "{}");
+    const body = await request.json();
     const action = body.action;
 
     if (action === "login") return login(body);
@@ -212,13 +212,11 @@ function cleanText(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
-function json(statusCode, data) {
-  return {
-    statusCode,
+function json(status, data) {
+  return Response.json(data, {
+    status,
     headers: {
-      "Content-Type": "application/json",
       "Cache-Control": "no-store",
     },
-    body: JSON.stringify(data),
-  };
+  });
 }
