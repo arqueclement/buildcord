@@ -7,6 +7,23 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <form id="memberLoginForm" class="login-form member-login-form">
+      <div>
+        <p class="eyebrow">BuildCord</p>
+        <h2>Connexion</h2>
+      </div>
+      <label>
+        Identifiant
+        <input id="restoreEmail" type="email" autocomplete="email" maxlength="80" placeholder="ex: contact@email.com" required />
+      </label>
+      <label>
+        Code
+        <input id="restoreCode" type="password" autocomplete="current-password" maxlength="64" placeholder="ex: Moidu31290" required />
+      </label>
+      <p id="memberLoginError" class="form-error" role="alert"></p>
+      <button class="primary-action" type="submit">Creer un compte / se connecter</button>
+    </form>
+
     <div class="app-shell">
       <aside class="brand-panel">
         <div class="brand-mark" aria-hidden="true">
@@ -23,23 +40,6 @@
         </div>
 
         <section class="order-panel" aria-labelledby="order-title">
-          <form id="memberLoginForm" class="login-form member-login-form">
-            <div>
-              <p class="eyebrow">BuildCord</p>
-              <h2>Connexion</h2>
-            </div>
-            <label>
-              Identifiant
-              <input id="restoreEmail" type="email" autocomplete="email" maxlength="80" placeholder="ex: contact@email.com" required />
-            </label>
-            <label>
-              Code
-              <input id="restoreCode" type="password" autocomplete="current-password" maxlength="64" placeholder="ex: Moidu31290" required />
-            </label>
-            <p id="memberLoginError" class="form-error" role="alert"></p>
-            <button class="primary-action" type="submit">Creer un compte / se connecter</button>
-          </form>
-
           <div id="orderHeader" class="hidden">
             <p class="eyebrow">Commande</p>
             <h2 id="order-title">Ouvrir une demande</h2>

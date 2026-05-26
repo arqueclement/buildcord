@@ -174,9 +174,7 @@ h3 {
 }
 
 .member-login-form {
-  margin-top: 1rem;
-  border-top: 1px solid var(--line);
-  padding-top: 1rem;
+  display: none;
 }
 
 body.login-required {
@@ -198,6 +196,7 @@ body.login-required .brand-panel > :not(.order-panel) {
 
 body.login-required .member-login-form {
   position: fixed;
+  display: grid;
   z-index: 50;
   left: 50%;
   top: 50%;
