@@ -20,6 +20,7 @@ const state = {
 
 const nodes = {
   orderForm: document.querySelector("#orderForm"),
+  orderHeader: document.querySelector("#orderHeader"),
   memberName: document.querySelector("#memberName"),
   memberEmail: document.querySelector("#memberEmail"),
   serviceType: document.querySelector("#serviceType"),
@@ -300,6 +301,7 @@ function renderSession() {
   nodes.logoutButton.classList.toggle("hidden", !state.isAdmin && !state.memberEmail);
   nodes.clearClosedButton.classList.toggle("hidden", !state.isAdmin || !state.tickets.some((ticket) => ticket.status === "closed"));
   const isMemberLoggedIn = Boolean(state.memberSession);
+  nodes.orderHeader.classList.toggle("hidden", !isMemberLoggedIn);
   nodes.orderForm.classList.toggle("hidden", !isMemberLoggedIn);
   nodes.memberLoginForm.classList.toggle("hidden", isMemberLoggedIn);
   nodes.memberEmail.value = state.memberEmail;
@@ -357,7 +359,7 @@ nodes.memberLoginForm.addEventListener("submit", async (event) => {
   }
 });
 
-nodes.loginForm.addEventListener("submit", login);
+nodes.loginForm?.addEventListener("submit", login);
 nodes.logoutButton.addEventListener("click", logout);
 nodes.messageForm.addEventListener("submit", sendMessage);
 nodes.closeTicketButton.addEventListener("click", closeTicket);

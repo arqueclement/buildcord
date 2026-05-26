@@ -52,6 +52,7 @@ button {
 .workspace,
 .order-panel,
 .login-panel,
+.member-help-panel,
 .feature-list,
 .ticket-console {
   border: 1px solid var(--line);
@@ -160,6 +161,7 @@ h3 {
 
 .order-panel,
 .login-panel,
+.member-help-panel,
 .feature-list {
   border-radius: 8px;
   padding: 1rem;
@@ -297,6 +299,7 @@ textarea:focus {
 }
 
 .feature-list p,
+.member-help-panel p,
 .ticket-button span,
 .message-meta,
 .empty-state,
@@ -470,6 +473,10 @@ textarea:focus {
   width: min(1320px, calc(100% - 2rem));
   margin: 0 auto;
   padding: 1rem 0;
+}
+
+.admin-entry {
+  margin-top: 0.8rem;
 }
 
 .admin-topbar,
