@@ -4,15 +4,19 @@ const MEMBER_EMAIL_KEY = "buildcord:member-email:v1";
 const MEMBER_SESSION_KEY = "buildcord:member-session:v1";
 const API_URL = "/.netlify/functions/tickets";
 const REFRESH_INTERVAL_MS = 3500;
+const savedMemberEmail = localStorage.getItem(MEMBER_EMAIL_KEY) || "";
+
+localStorage.removeItem(MEMBER_SESSION_KEY);
+localStorage.removeItem(MEMBER_KEYS);
 
 const state = {
   tickets: [],
   selectedId: null,
   isAdmin: Boolean(sessionStorage.getItem(SESSION_KEY)),
   adminToken: sessionStorage.getItem(SESSION_KEY) || "",
-  memberEmail: localStorage.getItem(MEMBER_EMAIL_KEY) || "",
-  memberSession: localStorage.getItem(MEMBER_SESSION_KEY) || "",
-  memberAccess: loadMemberAccess(),
+  memberEmail: savedMemberEmail,
+  memberSession: "",
+  memberAccess: [],
   isLoading: false,
   hasLoaded: false,
   error: "",
@@ -298,14 +302,18 @@ function renderChat() {
 
 function renderSession() {
   nodes.sessionBadge.textContent = state.isAdmin ? "Mode admin" : state.memberEmail ? state.memberEmail : "Mode membre";
-  nodes.logoutButton.classList.toggle("hidden", !state.isAdmin && !state.memberEmail);
+  nodes.logoutButton.classList.toggle("hidden", !state.isAdmin && !state.memberSession);
   nodes.clearClosedButton.classList.toggle("hidden", !state.isAdmin || !state.tickets.some((ticket) => ticket.status === "closed"));
   const isMemberLoggedIn = Boolean(state.memberSession);
+  document.body.classList.toggle("login-required", !isMemberLoggedIn);
   nodes.orderHeader.classList.toggle("hidden", !isMemberLoggedIn);
   nodes.orderForm.classList.toggle("hidden", !isMemberLoggedIn);
   nodes.memberLoginForm.classList.toggle("hidden", isMemberLoggedIn);
   nodes.memberEmail.value = state.memberEmail;
   nodes.memberEmail.readOnly = true;
+  if (!nodes.restoreEmail.value) {
+    nodes.restoreEmail.value = state.memberEmail;
+  }
 }
 
 function render() {

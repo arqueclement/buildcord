@@ -179,6 +179,78 @@ h3 {
   padding-top: 1rem;
 }
 
+body.login-required {
+  overflow: hidden;
+}
+
+body.login-required::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(3, 5, 18, 0.56);
+}
+
+body.login-required .workspace,
+body.login-required .brand-panel > :not(.order-panel) {
+  opacity: 0.35;
+}
+
+body.login-required .member-login-form {
+  position: fixed;
+  z-index: 50;
+  left: 50%;
+  top: 50%;
+  width: min(92vw, 62rem);
+  min-height: min(82vh, 45rem);
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(35, 23, 83, 0.96), rgba(11, 13, 30, 0.97)),
+    var(--panel-strong);
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.62);
+  padding: clamp(1.4rem, 4vw, 4rem);
+  transform: translate(-50%, -50%);
+}
+
+body.login-required .member-login-form h2 {
+  margin: 0 0 1.8rem;
+  color: #bd5cc7;
+  font-size: clamp(4rem, 12vw, 8.8rem);
+  font-weight: 500;
+  line-height: 0.9;
+  text-align: center;
+}
+
+body.login-required .member-login-form .eyebrow {
+  color: #8f9cff;
+  text-align: center;
+}
+
+body.login-required .member-login-form label {
+  color: #bd5cc7;
+  font-size: clamp(1.3rem, 3vw, 2.1rem);
+  font-weight: 500;
+}
+
+body.login-required .member-login-form input {
+  min-height: 3.6rem;
+  border-color: rgba(189, 92, 199, 0.25);
+  background: rgba(8, 10, 26, 0.72);
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+}
+
+body.login-required .member-login-form .primary-action {
+  align-self: center;
+  width: min(100%, 28rem);
+  margin-top: auto;
+  color: #eab7f0;
+  background: transparent;
+  font-size: clamp(1.4rem, 3vw, 2.15rem);
+  font-weight: 500;
+}
+
 label {
   display: grid;
   gap: 0.4rem;
