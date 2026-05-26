@@ -161,7 +161,7 @@ function renderTicketList() {
             <em class="status-pill ${ticket.status === "closed" ? "closed" : ""}">${statusText}</em>
           </span>
           <span>${escapeHtml(ticket.member)}</span>
-          <span>${escapeHtml(ticket.memberEmail || "Email non renseigne")}</span>
+          <span>${escapeHtml(ticket.memberEmail || "Identifiant non renseigne")}</span>
           <span>${escapeHtml(ticket.service)}</span>
           <span>${formatDate(ticket.createdAt)}</span>
         </button>
@@ -186,7 +186,7 @@ function renderChat() {
     return;
   }
 
-  nodes.ticketMeta.textContent = `${ticket.member} - ${ticket.memberEmail || "Email non renseigne"} - ${ticket.service} - ${formatDate(ticket.createdAt)}`;
+  nodes.ticketMeta.textContent = `${ticket.member} - ${ticket.memberEmail || "Identifiant non renseigne"} - ${ticket.service} - ${formatDate(ticket.createdAt)}`;
   nodes.ticketTitle.textContent = `# ${ticketName(ticket)}`;
   nodes.messages.innerHTML = ticket.messages
     .map((message) => {

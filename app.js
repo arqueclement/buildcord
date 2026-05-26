@@ -118,10 +118,10 @@ async function refreshTickets(options = {}) {
 
 async function createTicket({ member, email, service, details }) {
   if (!state.memberSession) {
-    throw new Error("Connecte-toi avec ton email avant d'ouvrir un ticket.");
+    throw new Error("Connecte-toi avec ton identifiant avant d'ouvrir un ticket.");
   }
 
-  state.memberEmail = normalizeEmail(email);
+  state.memberEmail = normalizeIdentifier(email);
   localStorage.setItem(MEMBER_EMAIL_KEY, state.memberEmail);
 
   const data = await api("create", { member, email: state.memberEmail, service, details });
@@ -215,7 +215,7 @@ function ticketName(ticket) {
 
 function renderTicketList() {
   if (!state.memberSession) {
-    nodes.ticketList.innerHTML = `<div class="empty-state">Connecte-toi avec ton email pour voir tes tickets.</div>`;
+    nodes.ticketList.innerHTML = `<div class="empty-state">Connecte-toi avec ton identifiant pour voir tes tickets.</div>`;
     return;
   }
 
@@ -258,7 +258,7 @@ function renderChat() {
     nodes.messageInput.disabled = true;
     nodes.sendButton.disabled = true;
     nodes.closeTicketButton.classList.add("hidden");
-    nodes.messages.innerHTML = `<div class="empty-state">Connecte-toi avec ton email et ton code pour ouvrir ou suivre une commande.</div>`;
+    nodes.messages.innerHTML = `<div class="empty-state">Connecte-toi avec ton identifiant et ton mot de passe pour ouvrir ou suivre une commande.</div>`;
     return;
   }
 
@@ -346,14 +346,14 @@ nodes.orderForm.addEventListener("submit", async (event) => {
   }
 });
 
-nodes.memberLoginForm.addEventListener("submit", async (event) => {
+  nodes.memberLoginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   nodes.memberLoginError.textContent = "";
-  const email = normalizeEmail(nodes.restoreEmail.value);
+  const email = normalizeIdentifier(nodes.restoreEmail.value);
   const code = nodes.restoreCode.value.trim();
 
   try {
-    const data = await api("memberLogin", { email, code });
+    const data = await api("memberLogin", { identifier: email, code });
     state.memberEmail = data.memberEmail;
     state.memberSession = data.memberSession;
     localStorage.setItem(MEMBER_EMAIL_KEY, state.memberEmail);
@@ -379,7 +379,7 @@ nodes.ticketList.addEventListener("click", (event) => {
   render();
 });
 
-function normalizeEmail(value) {
+function normalizeIdentifier(value) {
   return String(value || "").trim().toLowerCase();
 }
 

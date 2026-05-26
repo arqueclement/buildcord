@@ -46,10 +46,10 @@ async function login(body) {
 }
 
 async function memberLogin(body) {
-  const email = normalizeEmail(body.email || body.memberEmail);
+  const email = normalizeIdentifier(body.identifier || body.memberIdentifier || body.email || body.memberEmail);
   const code = cleanText(body.code, 64);
-  if (!email || !code) return json(400, { error: "Email et code obligatoires." });
-  if (code.length < 6) return json(400, { error: "Le code doit faire au moins 6 caracteres." });
+  if (!email || !code) return json(400, { error: "Identifiant et mot de passe obligatoires." });
+  if (code.length < 6) return json(400, { error: "Le mot de passe doit faire au moins 6 caracteres." });
 
   const accounts = await readMemberAccounts();
   const codeHash = hashMemberCode(email, code);
@@ -61,7 +61,7 @@ async function memberLogin(body) {
     };
     await writeMemberAccounts(accounts);
   } else if (!safeEqual(accounts[email].codeHash, codeHash)) {
-    return json(401, { error: "Email ou code incorrect." });
+    return json(401, { error: "Identifiant ou mot de passe incorrect." });
   }
 
   return json(200, {
@@ -377,7 +377,7 @@ function sha256(value) {
 }
 
 function hashMemberCode(email, code) {
-  return sha256(`${normalizeEmail(email)}:${code}:${TOKEN_SECRET}`);
+  return sha256(`${normalizeIdentifier(email)}:${code}:${TOKEN_SECRET}`);
 }
 
 function safeEqual(a, b) {
@@ -391,6 +391,10 @@ function cleanText(value, maxLength) {
 }
 
 function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase().slice(0, 80);
+}
+
+function normalizeIdentifier(value) {
   return String(value || "").trim().toLowerCase().slice(0, 80);
 }
 
