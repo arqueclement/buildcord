@@ -1,6 +1,6 @@
 const SESSION_KEY = "buildcord:admin-session:v2";
 const API_URL = "/api/tickets";
-const REFRESH_INTERVAL_MS = 3500;
+const REFRESH_INTERVAL_MS = 30000;
 
 const state = {
   tickets: [],

@@ -3,7 +3,7 @@ const MEMBER_KEYS = "buildcord:member-tickets:v2";
 const MEMBER_EMAIL_KEY = "buildcord:member-email:v1";
 const MEMBER_SESSION_KEY = "buildcord:member-session:v1";
 const API_URL = "/api/tickets";
-const REFRESH_INTERVAL_MS = 3500;
+const REFRESH_INTERVAL_MS = 30000;
 const savedMemberEmail = localStorage.getItem(MEMBER_EMAIL_KEY) || "";
 
 localStorage.removeItem(MEMBER_SESSION_KEY);
