@@ -13,6 +13,13 @@ const state = {
 
 const nodes = {
   logoutButton: document.querySelector("#logoutButton"),
+  adminLoginScreen: document.querySelector("#adminLoginScreen"),
+  adminLoginForm: document.querySelector("#adminLoginForm"),
+  adminId: document.querySelector("#adminId"),
+  adminPassword: document.querySelector("#adminPassword"),
+  loginError: document.querySelector("#loginError"),
+  adminStats: document.querySelector("#adminStats"),
+  adminConsole: document.querySelector("#adminConsole"),
   clearClosedButton: document.querySelector("#clearClosedButton"),
   ticketList: document.querySelector("#ticketList"),
   ticketMeta: document.querySelector("#ticketMeta"),
@@ -26,10 +33,6 @@ const nodes = {
   openTickets: document.querySelector("#openTickets"),
   closedTickets: document.querySelector("#closedTickets"),
 };
-
-if (!state.adminToken) {
-  window.location.href = "index.html";
-}
 
 async function api(action, payload = {}) {
   const response = await fetch(API_URL, {
@@ -52,7 +55,31 @@ async function api(action, payload = {}) {
   return data;
 }
 
+async function loginAdmin(event) {
+  event.preventDefault();
+  nodes.loginError.textContent = "";
+
+  try {
+    const data = await api("login", {
+      adminId: nodes.adminId.value.trim(),
+      adminPassword: nodes.adminPassword.value,
+    });
+
+    state.adminToken = data.adminToken;
+    sessionStorage.setItem(SESSION_KEY, data.adminToken);
+    nodes.adminLoginForm.reset();
+    await refreshTickets();
+  } catch (error) {
+    nodes.loginError.textContent = error.message;
+  }
+}
+
 async function refreshTickets(options = {}) {
+  if (!state.adminToken) {
+    render();
+    return;
+  }
+
   const silent = Boolean(options.silent);
   if (!silent) {
     state.isLoading = true;
@@ -108,8 +135,11 @@ async function clearClosedTickets() {
 }
 
 function logout() {
+  state.adminToken = "";
+  state.tickets = [];
+  state.selectedId = null;
   sessionStorage.removeItem(SESSION_KEY);
-  window.location.href = "index.html";
+  render();
 }
 
 function formatDate(value) {
@@ -211,6 +241,14 @@ function renderChat() {
 }
 
 function render() {
+  const isLoggedIn = Boolean(state.adminToken);
+  nodes.adminLoginScreen.classList.toggle("hidden", isLoggedIn);
+  nodes.adminStats.classList.toggle("hidden", !isLoggedIn);
+  nodes.adminConsole.classList.toggle("hidden", !isLoggedIn);
+  nodes.logoutButton.classList.toggle("hidden", !isLoggedIn);
+
+  if (!isLoggedIn) return;
+
   renderStats();
   renderTicketList();
   renderChat();
@@ -226,6 +264,7 @@ function escapeHtml(value) {
 }
 
 nodes.logoutButton.addEventListener("click", logout);
+nodes.adminLoginForm.addEventListener("submit", loginAdmin);
 nodes.messageForm.addEventListener("submit", sendMessage);
 nodes.closeTicketButton.addEventListener("click", closeTicket);
 nodes.clearClosedButton.addEventListener("click", clearClosedTickets);

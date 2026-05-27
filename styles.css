@@ -597,6 +597,7 @@ textarea:focus {
 }
 
 .admin-topbar,
+.admin-login-screen,
 .admin-stats,
 .admin-console {
   border: 1px solid var(--line);
@@ -604,6 +605,14 @@ textarea:focus {
   background: var(--panel);
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
+}
+
+.admin-login-screen {
+  display: grid;
+  gap: 1rem;
+  width: min(34rem, 100%);
+  margin: 0 auto;
+  padding: 1.2rem;
 }
 
 .admin-topbar {

@@ -15,11 +15,30 @@
         </div>
         <div class="session-actions">
           <a class="ghost-link" href="index.html">Voir le site</a>
-          <button id="logoutButton" class="ghost-action" type="button">Deconnexion</button>
+          <button id="logoutButton" class="ghost-action hidden" type="button">Deconnexion</button>
         </div>
       </header>
 
-      <section class="admin-stats" aria-label="Statistiques des tickets">
+      <section id="adminLoginScreen" class="admin-login-screen" aria-labelledby="admin-login-title">
+        <div>
+          <p class="eyebrow">Connexion admin</p>
+          <h2 id="admin-login-title">Admin panel</h2>
+        </div>
+        <form id="adminLoginForm" class="login-form">
+          <label>
+            Identifiant admin
+            <input id="adminId" autocomplete="username" required />
+          </label>
+          <label>
+            Mot de passe admin
+            <input id="adminPassword" type="password" autocomplete="current-password" required />
+          </label>
+          <p id="loginError" class="form-error" role="alert"></p>
+          <button class="primary-action" type="submit">Connexion admin</button>
+        </form>
+      </section>
+
+      <section id="adminStats" class="admin-stats hidden" aria-label="Statistiques des tickets">
         <article>
           <span id="totalTickets">0</span>
           <p>Total tickets</p>
@@ -34,7 +53,7 @@
         </article>
       </section>
 
-      <section class="admin-console" aria-label="Panel administrateur des tickets">
+      <section id="adminConsole" class="admin-console hidden" aria-label="Panel administrateur des tickets">
         <aside class="admin-orders">
           <div class="sidebar-head">
             <div>
