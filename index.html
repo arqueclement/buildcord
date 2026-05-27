@@ -18,7 +18,10 @@
       </label>
       <label>
         Mot de passe
-        <input id="restoreCode" type="password" autocomplete="current-password" maxlength="64" placeholder="ex: Moidu31290" required />
+        <span class="password-field">
+          <input id="restoreCode" type="password" autocomplete="current-password" maxlength="64" placeholder="ex: Moidu31290" required />
+          <button id="togglePasswordButton" class="password-toggle" type="button" aria-label="Voir le mot de passe">oeil</button>
+        </span>
       </label>
       <p id="memberLoginError" class="form-error" role="alert"></p>
       <div class="login-actions">

@@ -32,6 +32,7 @@ const nodes = {
   memberLoginForm: document.querySelector("#memberLoginForm"),
   restoreEmail: document.querySelector("#restoreEmail"),
   restoreCode: document.querySelector("#restoreCode"),
+  togglePasswordButton: document.querySelector("#togglePasswordButton"),
   memberLoginError: document.querySelector("#memberLoginError"),
   loginForm: document.querySelector("#loginForm"),
   adminId: document.querySelector("#adminId"),
@@ -346,7 +347,7 @@ nodes.orderForm.addEventListener("submit", async (event) => {
   }
 });
 
-  nodes.memberLoginForm.addEventListener("submit", async (event) => {
+nodes.memberLoginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   nodes.memberLoginError.textContent = "";
   const email = normalizeIdentifier(nodes.restoreEmail.value);
@@ -365,6 +366,13 @@ nodes.orderForm.addEventListener("submit", async (event) => {
   } catch (error) {
     nodes.memberLoginError.textContent = error.message;
   }
+});
+
+nodes.togglePasswordButton.addEventListener("click", () => {
+  const isHidden = nodes.restoreCode.type === "password";
+  nodes.restoreCode.type = isHidden ? "text" : "password";
+  nodes.togglePasswordButton.textContent = isHidden ? "cacher" : "oeil";
+  nodes.togglePasswordButton.setAttribute("aria-label", isHidden ? "Masquer le mot de passe" : "Voir le mot de passe");
 });
 
 nodes.loginForm?.addEventListener("submit", login);

@@ -288,6 +288,35 @@ textarea {
   padding: 0.78rem 0.86rem;
 }
 
+.password-field {
+  position: relative;
+  display: block;
+}
+
+.password-field input {
+  padding-right: 5.2rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  min-width: 3.8rem;
+  border: 1px solid rgba(189, 92, 199, 0.46);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #eab7f0;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.45rem 0.55rem;
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  border-color: rgba(189, 92, 199, 0.9);
+  background: rgba(189, 92, 199, 0.15);
+}
+
 textarea {
   resize: vertical;
 }
