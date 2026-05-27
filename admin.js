@@ -1,5 +1,5 @@
 const SESSION_KEY = "buildcord:admin-session:v2";
-const API_URL = "/.netlify/functions/tickets";
+const API_URL = "/api/tickets";
 const REFRESH_INTERVAL_MS = 3500;
 
 const state = {
@@ -48,9 +48,9 @@ async function api(action, payload = {}) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error("Le serveur de tickets n'est pas deploye. Publie le projet avec GitHub ou Netlify CLI pour activer les Functions.");
+      throw new Error("Le serveur de tickets n'est pas deploye sur Cloudflare.");
     }
-    throw new Error(data.error || "Impossible de charger les tickets. Verifie les Functions dans Netlify.");
+    throw new Error(data.error || "Impossible de charger les tickets. Verifie les Functions dans Cloudflare.");
   }
   return data;
 }
