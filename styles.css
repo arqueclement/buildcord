@@ -241,13 +241,30 @@ body.login-required .member-login-form input {
 }
 
 body.login-required .member-login-form .primary-action {
-  align-self: center;
-  width: min(100%, 28rem);
-  margin-top: auto;
+  width: auto;
+  min-width: 12rem;
   color: #eab7f0;
   background: transparent;
-  font-size: clamp(1.4rem, 3vw, 2.15rem);
+  border: 2px solid rgba(189, 92, 199, 0.9);
+  box-shadow: 0 0 0 4px rgba(189, 92, 199, 0.15);
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
   font-weight: 500;
+}
+
+.login-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.8rem;
+}
+
+.login-actions span {
+  color: #eab7f0;
+  font-size: clamp(1.2rem, 2.4vw, 2rem);
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
 }
 
 label {
@@ -685,6 +702,11 @@ textarea:focus {
 
   .message-form {
     grid-template-columns: 1fr;
+  }
+
+  .login-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   h1 {
