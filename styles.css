@@ -676,9 +676,35 @@ textarea:focus {
 }
 
 .admin-orders {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   border-right: 1px solid var(--line);
   background: rgba(8, 10, 24, 0.42);
   padding: 1rem;
+}
+
+.admin-orders .ticket-list {
+  max-height: calc(100vh - 20rem);
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  scrollbar-color: rgba(189, 92, 199, 0.82) rgba(255, 255, 255, 0.07);
+  scrollbar-width: thin;
+}
+
+.admin-orders .ticket-list::-webkit-scrollbar {
+  width: 0.55rem;
+}
+
+.admin-orders .ticket-list::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.admin-orders .ticket-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(189, 92, 199, 0.82);
 }
 
 .admin-chat .messages {
@@ -698,6 +724,22 @@ textarea:focus {
     min-height: auto;
   }
 
+  .workspace {
+    align-content: start;
+  }
+
+  .topbar {
+    order: 1;
+  }
+
+  .ticket-console {
+    order: 2;
+  }
+
+  .dashboard-grid {
+    order: 3;
+  }
+
   .feature-list {
     grid-template-columns: 1fr;
   }
@@ -706,6 +748,10 @@ textarea:focus {
   .admin-orders {
     border-right: 0;
     border-bottom: 1px solid var(--line);
+  }
+
+  .admin-orders .ticket-list {
+    max-height: 22rem;
   }
 
   .ticket-list {

@@ -4,8 +4,8 @@ import { getStore } from "@netlify/blobs";
 const TICKETS_KEY = "tickets";
 const MEMBER_CODES_KEY = "member-codes";
 const MEMBER_ACCOUNTS_KEY = "member-accounts";
-const ADMIN_ID_HASH = "c0b77f7eee72dfd46520f934db2f0badf2a7915a80d9c7a049b3ccbfd9513c39";
-const ADMIN_PASSWORD_HASH = "13472559ec86e965f6d85c6cbfd035d02127e383bb960c08628555419e215cb9";
+const ADMIN_ID_HASH = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+const ADMIN_PASSWORD_HASH = "ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae";
 const TOKEN_SECRET = process.env.BUILDCORD_TOKEN_SECRET || ADMIN_PASSWORD_HASH;
 const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "BuildCord <onboarding@resend.dev>";
 
